@@ -52,7 +52,14 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - **RAG vs. fine-tuning:** to make a model *know* my documents, try RAG first; fine-tune to change *behavior, style, or format*.
 
 ## Status (2026-10-27)
-- Project folder created. Next step: install Ollama and run a Llama 8B model.
+- Repo on GitHub (`MackMusial/llama-lab`, origin/master); README added. Goal: public portfolio piece showing AI work, so record measured results.
+- Ollama 0.40.11 installed. 8B Q4_K_M: 64.6 tok/s, ~5.4 GB; Q8_0: 42.5 tok/s, ~8.9 GB (both 100% GPU). Results live in `benchmarks.md`.
+- Q4 vs Q8 quality compared (n=1, inconclusive; both had factual errors). Uncommitted: README, benchmarks.md, CLAUDE.md edits.
+- Next: system prompts, then context length (rest of Phase 1).
 
 ## Concepts Mack has learned
-(none yet)
+- Quantization basics (Q4 ≈ 4.5 bits/weight → 8B fits in ~5 GB); KV cache grows with context.
+- Prefill (parallel, fast) vs generation (one token at a time); first-request warm-up is an outlier, not a result.
+- Models are stateless: chat resends the whole history each turn; prompt cache reuses the shared prefix; context window limits memory.
+- Generation is memory-bandwidth bound (tok/s ≈ bandwidth ÷ model bytes); more bits = more accuracy, less speed, more VRAM. Same parameter count.
+- Evaluating output: sampling is random (temperature), so n=1 proves nothing; prior turns contaminate answers; confident formatting ≠ correctness.
