@@ -1,0 +1,18 @@
+# Environments
+.venv/
+venv/
+__pycache__/
+
+# Model files and training output (never commit or sync these)
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+checkpoints/
+outputs/
+runs/
+models/
+
+# Secrets
+.env
