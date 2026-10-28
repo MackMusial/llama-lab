@@ -56,7 +56,11 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Ollama 0.40.11 installed. 8B Q4_K_M: 64.6 tok/s, ~5.4 GB; Q8_0: 42.5 tok/s, ~8.9 GB (both 100% GPU). Results live in `benchmarks.md`.
 - Q4 vs Q8 quality compared (n=1, inconclusive; both had factual errors). All committed (4362f61).
 - Laptop CPU benchmark of `llama3.2:1b` (Q8_0, 1.3 GB, 100% CPU, iGPU unused): measured 20.6 tok/s fresh, 17.0 tok/s at ~850-token context, vs predicted ~33 (ceiling 52.5). Prefill 49.7 tok/s (34-token prompt, noisy). Mack to explain the gap and add the row to `benchmarks.md`. Gap = CPU efficiency only 39% (vs GPU 63%). `llama3.2:3b` Q4_K_M: predicted 1.96 GB / ~13.6 tok/s, measured **12.48 tok/s**, 2.6 GB loaded, 100% CPU, prefill 38.0 tok/s (clean one-shot). Prediction within 8%. iGPU unused because Ollama 0.40.12 finds it via Vulkan but drops integrated GPUs by default (`OLLAMA_IGPU_ENABLE=1` to enable). iGPU-on experiment skipped (Mack's call). Cleaned laptop startup; Wavesor (Wave Browser PUP) found, uninstall + Defender scan pending.
-- Next: Mack writes the laptop rows + prediction-vs-actual paragraph in `benchmarks.md` (homework: 3B efficiency %, why 2.6 GB loaded vs 1.96 GB file), then system prompts, then context length (rest of Phase 1).
+- Quiz 2026-10-28 (6 Qs): solid on bandwidth math + stateless chat; weak on prefill vs generation, chat template/`<|eot_id|>`, evaluation (n=1, sampling). Re-quiz those before Phase 3.
+- Context-length experiment already done and recorded in `benchmarks.md` (4K/16K/64K, spill to CPU).
+- Laptop write-up done 2026-10-28 (Mack answered quiz-style, Claude wrote it into `benchmarks.md`; Mack hates prose writing, so this format works). 3B = leading Pristine Pools candidate, not decided: must beat/near the 8B on held-out pool prompts; distilling 8B → 3B is a Phase 3 option.
+- Phase 2 step 1 done (2026-10-28, desktop): venv at `C:\Users\mackm\.venvs\llama-lab` (Python 3.12.10), torch 2.15.0+cu134, `cuda.is_available()` True. Driver 617.14 (CUDA ≤ 13.4). If Unsloth/bitsandbytes need older torch in Phase 3, rebuild the venv. Always `python -m pip`.
+- Next: install numpy; first tensor-on-GPU script (CPU vs GPU matmul), then transformers + tokenizer.
 
 ## Concepts Mack has learned
 - Quantization basics (Q4 ≈ 4.5 bits/weight → 8B fits in ~5 GB); KV cache grows with context.
@@ -65,4 +69,6 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - KV cache is linear in `num_ctx` and reserved up front; overflow spills layers to CPU (same accuracy, much slower — slowest stage sets speed).
 - Generation is memory-bandwidth bound (tok/s ≈ bandwidth ÷ model bytes); more bits = more accuracy, less speed, more VRAM. Same parameter count.
 - System prompt = text at the start of the prompt in a `system` role. Chat template flattens all turns into one string with special tokens (`<|start_header_id|>`, `<|eot_id|>`); the model just predicts tokens after an open `assistant` header. Fine-tuning data must use the same template.
+- Layers: a model is a stack of identical blocks (attention + feed-forward), run in order; each keeps its own KV per token; spill moves whole layers; LoRA adapts layer weights.
+- Efficiency = measured ÷ ceiling; it's per-machine (GPU ~63%, laptop CPU ~36–39%). VRAM (memory) ≠ load (work).
 - Evaluating output: sampling is random (temperature), so n=1 proves nothing; prior turns contaminate answers; confident formatting ≠ correctness.
