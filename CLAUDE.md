@@ -24,12 +24,12 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Keep only code, small datasets (JSONL), Modelfiles and notes here.
 
 ## Roadmap
-### ▶ Phase 1: Run a model locally
+### ✅ Phase 1: Run a model locally
 - Install Ollama (or LM Studio)
 - Pull and chat with a small Llama (e.g., an 8B instruct model)
 - Learn the basics: prompts, system prompts, context length, quantization (Q4/Q8), tokens/sec
 
-### Phase 2: Learn the toolkit
+### ▶ Phase 2: Learn the toolkit
 - Python venv, PyTorch with CUDA
 - Hugging Face: transformers, datasets, the Hub
 - Load a model in Python, tokenize text, generate output
@@ -55,11 +55,14 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Repo on GitHub (`MackMusial/llama-lab`, origin/master); README added. Goal: public portfolio piece showing AI work, so record measured results.
 - Ollama 0.40.11 installed. 8B Q4_K_M: 64.6 tok/s, ~5.4 GB; Q8_0: 42.5 tok/s, ~8.9 GB (both 100% GPU). Results live in `benchmarks.md`.
 - Q4 vs Q8 quality compared (n=1, inconclusive; both had factual errors). Uncommitted: README, benchmarks.md, CLAUDE.md edits.
-- Next: system prompts, then context length (rest of Phase 1).
+- System prompts tested; chat template read. Context length measured: KV cache ~128 KiB/token, linear; 64K context spills 26% to CPU → 25 tok/s.
+- **Phase 1 complete (2026-10-27).** Next: Phase 2 step 1, venv at `C:\Users\mackm\.venvs\llama-lab` + PyTorch with CUDA.
 
 ## Concepts Mack has learned
 - Quantization basics (Q4 ≈ 4.5 bits/weight → 8B fits in ~5 GB); KV cache grows with context.
 - Prefill (parallel, fast) vs generation (one token at a time); first-request warm-up is an outlier, not a result.
 - Models are stateless: chat resends the whole history each turn; prompt cache reuses the shared prefix; context window limits memory.
+- KV cache is linear in `num_ctx` and reserved up front; overflow spills layers to CPU (same accuracy, much slower — slowest stage sets speed).
 - Generation is memory-bandwidth bound (tok/s ≈ bandwidth ÷ model bytes); more bits = more accuracy, less speed, more VRAM. Same parameter count.
+- System prompt = text at the start of the prompt in a `system` role. Chat template flattens all turns into one string with special tokens (`<|start_header_id|>`, `<|eot_id|>`); the model just predicts tokens after an open `assistant` header. Fine-tuning data must use the same template.
 - Evaluating output: sampling is random (temperature), so n=1 proves nothing; prior turns contaminate answers; confident formatting ≠ correctness.
