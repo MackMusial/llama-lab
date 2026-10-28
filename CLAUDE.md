@@ -61,7 +61,9 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Laptop write-up done 2026-10-28 (Mack answered quiz-style, Claude wrote it into `benchmarks.md`; Mack hates prose writing, so this format works). 3B = leading Pristine Pools candidate, not decided: must beat/near the 8B on held-out pool prompts; distilling 8B → 3B is a Phase 3 option.
 - Phase 2 step 1 done (2026-10-28, desktop): venv at `C:\Users\mackm\.venvs\llama-lab` (Python 3.12.10), torch 2.15.0+cu134, `cuda.is_available()` True. Driver 617.14 (CUDA ≤ 13.4). If Unsloth/bitsandbytes need older torch in Phase 3, rebuild the venv. Always `python -m pip`.
 - `gpu_matmul.py` done (Mack wrote it, guided): CPU 233.9 ms vs GPU 7.3 ms, ~32× (predicted ~30×). Recorded in `benchmarks.md`.
-- Next: optional matrix × vector follow-up (shows the bandwidth-bound generation shape); install numpy; then transformers + tokenizer.
+- ▶ **Resume here:** matrix × vector follow-up in `gpu_matmul.py` (Mack's choice). Spec given: `v = torch.randn(4096)`, time `A @ v` ×100 in a loop and divide, CPU vs GPU (warm-up + sync rules apply). **Mack owes predictions before coding:** bytes of A (4096² × 4 B), CPU ms at ~55 GB/s, GPU ms at 504 GB/s, speedup vs the 32× matmul. Desktop = i9-11900K, 64 GB DDR4-3467 dual channel (~55 GB/s).
+- Then: install numpy; transformers + tokenizer. Mack should tidy `gpu_matmul.py` (fill `speedup 30x` on line 1, add speedup print, delete scaffolding).
+- Mack skips predictions unless held to them: wait for the numbers before he runs anything.
 
 ## Concepts Mack has learned
 - Quantization basics (Q4 ≈ 4.5 bits/weight → 8B fits in ~5 GB); KV cache grows with context.
