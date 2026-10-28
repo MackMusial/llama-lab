@@ -54,6 +54,20 @@ HP Envy x360 15: 8 GB LPDDR4X-4266 (~68 GB/s), no CUDA. Ollama 0.40.12, 100% CPU
 - **Why the 1B slowed at ~850 tokens (20.6 → 17.0):** every new token attends to all earlier tokens. The extra KV reads are small (32 KiB/token × 850 ≈ 27 MB, ~2% of the weights), so most of the 17% drop is attention compute that grows with context, which a weak CPU feels. n=1, so part of it may be noise.
 - **Practical read:** a 3B Q4 model is usable on CPU-only hardware (12.5 tok/s beats reading speed), but prefill at ~38 tok/s means a 500-token prompt waits ~13 s before the first token. Speed alone doesn't make 3B the right model; quality still has to be tested.
 
+## PyTorch: CPU vs GPU matrix multiply (desktop)
+
+`gpu_matmul.py`: one 4096 × 4096 fp32 matmul (2 × 4096³ ≈ 137 billion operations), torch 2.15.0+cu134, n=1.
+
+| Device | Predicted | Measured | Achieved |
+|---|---|---|---|
+| CPU | 137 ms (at ~1 trillion ops/s) | 233.9 ms | ~0.59 trillion ops/s |
+| RTX 4070 Super | 4.6 ms (at ~30 trillion ops/s) | 7.3 ms | ~18.8 trillion ops/s |
+| Speedup | ~30× | ~32× | |
+
+- **GPU calls are asynchronous:** `A_gpu @ B_gpu` only queues the work, so the timer needs `torch.cuda.synchronize()` before it stops.
+- **Warm-up needs a sync too:** without one after the warm-up multiply, the timed run waited behind it in the GPU queue and measured 11.0 ms instead of 7.3 ms, a 50% error with no warning.
+- Matrix × matrix is the prefill shape (compute bound), which is where a GPU's thousands of cores pay off. Generation is matrix × vector (bandwidth bound), so the gap there should be smaller.
+
 ## Notes
 
 - **First-request warm-up:** the very first prompt after loading showed prompt eval at 1.07 tok/s (18.7 s for 20 tokens) and generation at 61.06 tok/s. Treated as one-time CUDA initialization; the warm second run is recorded above.
