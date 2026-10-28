@@ -16,7 +16,7 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 ## Hardware
 - **Desktop (`Mack`):** NVIDIA RTX 4070 Super, 12 GB VRAM. All GPU work (inference, training) happens here.
 - Target model size: 1B–8B parameters. An 8B model fits for quantized inference and for QLoRA fine-tuning.
-- Laptop: specs unknown; treat as code-editing only unless checked.
+- **Laptop (`MacksWaterFountain`):** HP Envy x360 15, Ryzen 5 7530U, 8 GB LPDDR4X-4266 soldered (not upgradeable, ~68 GB/s, 7.3 usable), integrated Radeon, no CUDA. RAM-starved: close VS Code/Claude before benchmarking. Good for CPU inference of 1B–3B Q4 models, tokenizer/Python work, and writing datasets. No training.
 
 ## Storage rules (project lives in OneDrive)
 - **Never put big files in this folder:** model weights, GGUF exports, checkpoints and the venv would sync to OneDrive. Ollama keeps models in `~\.ollama`, Hugging Face in `~\.cache\huggingface` (both outside OneDrive).
@@ -54,8 +54,9 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 ## Status (2026-10-27)
 - Repo on GitHub (`MackMusial/llama-lab`, origin/master); README added. Goal: public portfolio piece showing AI work, so record measured results.
 - Ollama 0.40.11 installed. 8B Q4_K_M: 64.6 tok/s, ~5.4 GB; Q8_0: 42.5 tok/s, ~8.9 GB (both 100% GPU). Results live in `benchmarks.md`.
-- Q4 vs Q8 quality compared (n=1, inconclusive; both had factual errors). Uncommitted: README, benchmarks.md, CLAUDE.md edits.
-- Next: system prompts, then context length (rest of Phase 1).
+- Q4 vs Q8 quality compared (n=1, inconclusive; both had factual errors). All committed (4362f61).
+- Laptop CPU benchmark of `llama3.2:1b` (Q8_0, 1.3 GB, 100% CPU, iGPU unused): measured 20.6 tok/s fresh, 17.0 tok/s at ~850-token context, vs predicted ~33 (ceiling 52.5). Prefill 49.7 tok/s (34-token prompt, noisy). Mack to explain the gap and add the row to `benchmarks.md`. Gap = CPU efficiency only 39% (vs GPU 63%). `llama3.2:3b` Q4_K_M: predicted 1.96 GB / ~13.6 tok/s, measured **12.48 tok/s**, 2.6 GB loaded, 100% CPU, prefill 38.0 tok/s (clean one-shot). Prediction within 8%. iGPU unused because Ollama 0.40.12 finds it via Vulkan but drops integrated GPUs by default (`OLLAMA_IGPU_ENABLE=1` to enable). iGPU-on experiment skipped (Mack's call). Cleaned laptop startup; Wavesor (Wave Browser PUP) found, uninstall + Defender scan pending.
+- Next: Mack writes the laptop rows + prediction-vs-actual paragraph in `benchmarks.md` (homework: 3B efficiency %, why 2.6 GB loaded vs 1.96 GB file), then system prompts, then context length (rest of Phase 1).
 
 ## Concepts Mack has learned
 - Quantization basics (Q4 ≈ 4.5 bits/weight → 8B fits in ~5 GB); KV cache grows with context.
