@@ -68,6 +68,20 @@ HP Envy x360 15: 8 GB LPDDR4X-4266 (~68 GB/s), no CUDA. Ollama 0.40.12, 100% CPU
 - **Warm-up needs a sync too:** without one after the warm-up multiply, the timed run waited behind it in the GPU queue and measured 11.0 ms instead of 7.3 ms, a 50% error with no warning.
 - Matrix × matrix is the prefill shape (compute bound), which is where a GPU's thousands of cores pay off. Generation is matrix × vector (bandwidth bound), so the gap there should be smaller.
 
+### Matrix × vector (the generation shape)
+
+Same 4096 × 4096 fp32 matrix (67 MB) × one 4096-vector, averaged over 100 runs, 3 runs total. Each weight is read once and used once, so time ≈ bytes ÷ bandwidth. Desktop RAM: DDR4-3467 dual channel ≈ 55 GB/s; GPU ≈ 504 GB/s.
+
+| Device | Predicted | Measured | Bandwidth achieved |
+|---|---|---|---|
+| CPU (i9-11900K) | 1.22 ms | 1.59–1.68 ms | ~41 GB/s (~74%) |
+| RTX 4070 Super | 0.13 ms | 0.18–0.20 ms | ~370 GB/s (~73%) |
+| Speedup | ~9× (504 ÷ 55) | 8.5–9.5× | |
+
+- **The speedup collapses from ~32× to ~9×, which is the bandwidth ratio.** With no reuse, the cores wait on memory, so core count stops mattering.
+- That is why LLM generation (tok/s ≈ bandwidth ÷ model bytes) gains far less from a GPU than prefill does.
+- Matrix × matrix varied 24.5–33.4× across the 3 runs (single timed run each), so the earlier 32× is one sample of a noisy measurement.
+
 ## Notes
 
 - **First-request warm-up:** the very first prompt after loading showed prompt eval at 1.07 tok/s (18.7 s for 20 tokens) and generation at 61.06 tok/s. Treated as one-time CUDA initialization; the warm second run is recorded above.

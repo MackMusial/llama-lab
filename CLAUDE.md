@@ -61,8 +61,8 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Laptop write-up done 2026-10-28 (Mack answered quiz-style, Claude wrote it into `benchmarks.md`; Mack hates prose writing, so this format works). 3B = leading Pristine Pools candidate, not decided: must beat/near the 8B on held-out pool prompts; distilling 8B → 3B is a Phase 3 option.
 - Phase 2 step 1 done (2026-10-28, desktop): venv at `C:\Users\mackm\.venvs\llama-lab` (Python 3.12.10), torch 2.15.0+cu134, `cuda.is_available()` True. Driver 617.14 (CUDA ≤ 13.4). If Unsloth/bitsandbytes need older torch in Phase 3, rebuild the venv. Always `python -m pip`.
 - `gpu_matmul.py` done (Mack wrote it, guided): CPU 233.9 ms vs GPU 7.3 ms, ~32× (predicted ~30×). Recorded in `benchmarks.md`.
-- ▶ **Resume here:** matrix × vector follow-up in `gpu_matmul.py` (Mack's choice). Spec given: `v = torch.randn(4096)`, time `A @ v` ×100 in a loop and divide, CPU vs GPU (warm-up + sync rules apply). **Mack owes predictions before coding:** bytes of A (4096² × 4 B), CPU ms at ~55 GB/s, GPU ms at 504 GB/s, speedup vs the 32× matmul. Desktop = i9-11900K, 64 GB DDR4-3467 dual channel (~55 GB/s).
-- Then: install numpy; transformers + tokenizer. Mack should tidy `gpu_matmul.py` (fill `speedup 30x` on line 1, add speedup print, delete scaffolding).
+- Matrix × vector follow-up in `gpu_matmul.py` (Mack's choice). Spec given: `v = torch.randn(4096)`, time `A @ v` ×100 in a loop and divide, CPU vs GPU (warm-up + sync rules apply). Predictions done: A = 67 MB, CPU 1.22 ms, GPU 0.13 ms, speedup ~9× (= bandwidth ratio). **Done:** measured 8.5–9.5× (both ~74% of bandwidth), recorded in `benchmarks.md`. Mack wrote the vector code; Claude fixed the last bugs at his request (`*100` → `*1000 / runs`, swapped prediction lines, speedup prints). Mack should review the diff: why `*1000 / runs`. Desktop = i9-11900K, 64 GB DDR4-3467 dual channel (~55 GB/s).
+- ▶ Next: install numpy; transformers + tokenizer.
 - Mack skips predictions unless held to them: wait for the numbers before he runs anything.
 
 ## Concepts Mack has learned
@@ -75,4 +75,5 @@ Side benefit: practice for Pristine Pools Phase 2 (local ~3B Llama via Ollama, f
 - Layers: a model is a stack of identical blocks (attention + feed-forward), run in order; each keeps its own KV per token; spill moves whole layers; LoRA adapts layer weights.
 - Efficiency = measured ÷ ceiling; it's per-machine (GPU ~63%, laptop CPU ~36–39%). VRAM (memory) ≠ load (work).
 - PyTorch basics: tensors live on a device; math runs where the inputs are; `.to("cuda")` returns a copy. GPU ops are asynchronous (CPU queues, moves on), so timing needs `torch.cuda.synchronize()`, including after warm-up.
+- Compute-bound vs memory-bound (2026-10-28, explained it back in his own words): matrix × matrix reuses each weight many times → cores limit (prefill); matrix × vector uses each weight once → bandwidth limits (generation). Arithmetic intensity = math per byte.
 - Evaluating output: sampling is random (temperature), so n=1 proves nothing; prior turns contaminate answers; confident formatting ≠ correctness.
